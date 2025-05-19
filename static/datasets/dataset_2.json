@@ -1,0 +1,12 @@
+```json
+[
+  {
+    "job_title": "Data Scientist",
+    "skills": "Data Analysis, Machine Learning, Python, R, Statistical Modeling, Communication, Problem-Solving"
+  },
+  {
+    "job_title": "Cybersecurity Analyst",
+    "skills": "Cybersecurity, Network Security, Risk Management, Incident Response, Security Auditing, Ethical Hacking, Cloud Security"
+  }
+]
+```

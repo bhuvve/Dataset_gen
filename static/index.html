@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candata Dataset Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #4fc3f7, #43e97b);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .card-hover {
+            transition: transform 0.3s ease;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+        }
+        .preview-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .preview-table th {
+            background: #43e97b;
+            color: white;
+        }
+        .preview-table tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        .preview-table tr:hover {
+            background: #e0f7fa;
+        }
+        .header-text {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            background: linear-gradient(45deg, #4fc3f7, #43e97b);
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: linear-gradient(45deg, #0288d1, #388e3c);
+            transform: translateY(-2px);
+        }
+        .header-logo {
+            height: 80px;
+            width: 80px;
+            margin-right: 32px;
+            display: inline-block;
+            vertical-align: middle;
+            object-fit: contain;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .header-logo[alt]:not([src]) {
+            display: none;
+        }
+        .header-flex {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="header-flex mb-12 animate__animated animate__fadeIn">
+            <img src="https://media.licdn.com/dms/image/v2/D560BAQHQUmzs4af4YQ/company-logo_200_200/company-logo_200_200/0/1704862581263/candata_ai_logo?e=2147483647&v=beta&t=64YDmfWxKQV5VVZlUAq2JBiEwS6t7X0hgzVCYX_8i-I" alt="CanData.ai Logo" class="header-logo">
+            <div class="flex flex-col justify-center">
+                <h1 class="text-4xl font-bold text-white mb-2 header-text">Candata Dataset Generator</h1>
+                <p class="text-xl text-white opacity-90 header-text">Transform your ideas into structured data with AI-powered precision</p>
+            </div>
+        </header>
+
+        <!-- Main Form -->
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-8 card-hover animate__animated animate__fadeInUp">
+            <form id="datasetForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="numRows">
+                        Number of Rows
+                    </label>
+                    <input type="number" id="numRows" name="numRows" min="1" max="1000"
+                           class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                           required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="prompt">
+                        Dataset Description
+                    </label>
+                    <textarea id="prompt" name="prompt" rows="4"
+                              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              required></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="backstory">
+                        Additional Context (Optional)
+                    </label>
+                    <textarea id="backstory" name="backstory" rows="3"
+                              class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"></textarea>
+                </div>
+                <button type="submit"
+                        class="w-full text-white py-2 px-4 rounded-lg animate__animated animate__pulse">
+                    Generate Dataset
+                </button>
+            </form>
+        </div>
+
+        <!-- Preview Section -->
+        <div id="previewSection" class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-6 mb-8 hidden animate__animated animate__fadeIn">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Dataset Generated Successfully!</h2>
+                <div class="space-x-4">
+                    <button id="viewPreviewBtn" onclick="togglePreview()"
+                            class="text-white py-2 px-4 rounded-lg animate__animated animate__pulse">
+                        View Preview
+                    </button>
+                    <button id="downloadBtn" onclick="downloadDataset()"
+                            class="text-white py-2 px-4 rounded-lg animate__animated animate__pulse">
+                        Download Dataset
+                    </button>
+                </div>
+            </div>
+            <div id="previewTableContainer" class="hidden">
+                <div class="overflow-x-auto preview-table">
+                    <table id="previewTable" class="min-w-full">
+                        <thead>
+                            <tr id="previewHeader"></tr>
+                        </thead>
+                        <tbody id="previewBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="hidden fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+            <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-400"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('datasetForm');
+        const previewSection = document.getElementById('previewSection');
+        const previewTableContainer = document.getElementById('previewTableContainer');
+        const previewHeader = document.getElementById('previewHeader');
+        const previewBody = document.getElementById('previewBody');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        let currentDownloadUrl = '';
+        let currentPreviewData = null;
+
+        function togglePreview() {
+            const isHidden = previewTableContainer.classList.contains('hidden');
+            if (isHidden) {
+                if (currentPreviewData) {
+                    displayPreview(currentPreviewData);
+                } else {
+                    alert('No preview data available');
+                }
+            } else {
+                previewTableContainer.classList.add('hidden');
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loadingSpinner.classList.remove('hidden');
+
+            const formData = {
+                num_rows: parseInt(document.getElementById('numRows').value),
+                prompt: document.getElementById('prompt').value,
+                backstory: document.getElementById('backstory').value
+            };
+
+            try {
+                console.log('Sending request with data:', formData);
+                const response = await fetch('/generate-dataset', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+                console.log('Received response:', data);
+                
+                if (response.ok) {
+                    currentDownloadUrl = data.download_url;
+                    if (data.preview_data) {
+                        console.log('Preview data received:', data.preview_data);
+                        currentPreviewData = data.preview_data;
+                        previewSection.classList.remove('hidden');
+                        previewTableContainer.classList.add('hidden');
+                    } else {
+                        console.error('No preview data in response');
+                        alert('Error: No preview data available');
+                    }
+                } else {
+                    console.error('Error response:', data);
+                    alert('Error: ' + data.detail);
+                }
+            } catch (error) {
+                console.error('Request error:', error);
+                alert('Error: ' + error.message);
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        function displayPreview(data) {
+            console.log('Displaying preview with data:', data);
+            
+            // Try to parse if the data is a string
+            if (typeof data === 'string') {
+                try {
+                    // Remove markdown code block and any trailing text
+                    let jsonStr = data;
+                    if (data.includes('```json')) {
+                        jsonStr = data.split('```json')[1].split('```')[0].trim();
+                    }
+                    console.log('Cleaned JSON string:', jsonStr);
+                    data = JSON.parse(jsonStr);
+                    console.log('Parsed data:', data);
+                } catch (e) {
+                    console.error('Failed to parse JSON string:', e);
+                    alert('Error displaying preview: Invalid data format');
+                    return;
+                }
+            }
+
+            if (Array.isArray(data) && data.length > 0) {
+                console.log('Processing array data:', data);
+                // Clear previous preview
+                previewHeader.innerHTML = '';
+                previewBody.innerHTML = '';
+
+                // Add headers
+                const headers = Object.keys(data[0]);
+                console.log('Headers found:', headers);
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.className = 'px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider';
+                    th.textContent = header;
+                    previewHeader.appendChild(th);
+                });
+
+                // Add rows
+                data.forEach((row, index) => {
+                    console.log(`Processing row ${index}:`, row);
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-blue-50';
+                    headers.forEach(header => {
+                        const td = document.createElement('td');
+                        td.className = 'px-6 py-4 whitespace-nowrap text-sm text-gray-700';
+                        
+                        // Handle array values
+                        if (Array.isArray(row[header])) {
+                            td.textContent = row[header].join(', ');
+                        } else {
+                            td.textContent = row[header] !== null ? row[header] : '';
+                        }
+                        
+                        tr.appendChild(td);
+                    });
+                    previewBody.appendChild(tr);
+                });
+
+                // Show the table container
+                previewTableContainer.classList.remove('hidden');
+            } else {
+                console.error('Invalid preview data format:', data);
+                alert('Error displaying preview: Invalid data format');
+            }
+        }
+
+        function downloadDataset() {
+            if (currentDownloadUrl) {
+                window.location.href = currentDownloadUrl;
+            }
+        }
+    </script>
+</body>
+</html> 
